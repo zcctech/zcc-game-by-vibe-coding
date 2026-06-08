@@ -7,6 +7,7 @@ const ui = {
   life: document.getElementById("lifeText"),
   combo: document.getElementById("comboText"),
   startPanel: document.getElementById("startPanel"),
+  introPanel: document.getElementById("introPanel"),
   upgradePanel: document.getElementById("upgradePanel"),
   upgradeGrid: document.getElementById("upgradeGrid"),
   endPanel: document.getElementById("endPanel"),
@@ -14,6 +15,11 @@ const ui = {
   endTitle: document.getElementById("endTitle"),
   endCopy: document.getElementById("endCopy"),
   startButton: document.getElementById("startButton"),
+  introButton: document.getElementById("introButton"),
+  introStartButton: document.getElementById("introStartButton"),
+  introBackButton: document.getElementById("introBackButton"),
+  difficultyButtons: [...document.querySelectorAll("[data-difficulty]")],
+  difficultyNote: document.getElementById("difficultyNote"),
   restartButton: document.getElementById("restartButton"),
   pauseButton: document.getElementById("pauseButton"),
   pauseIcon: document.getElementById("pauseIcon"),
@@ -35,6 +41,7 @@ const state = {
   level: 1,
   score: 0,
   lives: 3,
+  difficulty: "normal",
   combo: 1,
   maxCombo: 1,
   comboTimer: 0,
@@ -76,6 +83,41 @@ const palette = {
   red: "#ff4141",
   white: "#f6fbff",
   dark: "#020a18",
+};
+
+const BALL_MIN_SPEED = 3.8;
+
+const difficulties = {
+  easy: {
+    label: "简单",
+    note: "简单：5 条生命，球速较慢，障碍更温和，适合熟悉玩法。",
+    lives: 5,
+    startSpeed: 3.95,
+    maxSpeed: 5.65,
+    obstacleScale: 0.78,
+    shieldHpBonus: -1,
+    splitBonus: 0.03,
+  },
+  normal: {
+    label: "普通",
+    note: "普通：3 条生命，标准速度和障碍节奏，适合第一次完整体验。",
+    lives: 3,
+    startSpeed: 4.35,
+    maxSpeed: 6.25,
+    obstacleScale: 1,
+    shieldHpBonus: 0,
+    splitBonus: 0,
+  },
+  hard: {
+    label: "困难",
+    note: "困难：2 条生命，球速更快，障碍更活跃，护盾方块更硬。",
+    lives: 2,
+    startSpeed: 4.75,
+    maxSpeed: 6.75,
+    obstacleScale: 1.24,
+    shieldHpBonus: 1,
+    splitBonus: -0.015,
+  },
 };
 
 const upgrades = [
@@ -249,6 +291,10 @@ function rand(min, max) {
   return Math.random() * (max - min) + min;
 }
 
+function currentDifficulty() {
+  return difficulties[state.difficulty] || difficulties.normal;
+}
+
 function levelCycle(level) {
   return Math.floor((level - 1) / levelForms.length);
 }
@@ -304,11 +350,11 @@ function currentLevelForm(level = state.level) {
 }
 
 function levelStartSpeed() {
-  return clamp(4.2 + state.level * 0.18, 4.2, 6.5);
+  return currentDifficulty().startSpeed;
 }
 
 function maxBallSpeed() {
-  return clamp(5.8 + state.level * 0.24, 5.8, 8.4);
+  return currentDifficulty().maxSpeed;
 }
 
 function setBallSpeed(ball, speed) {
@@ -319,11 +365,11 @@ function setBallSpeed(ball, speed) {
 
 function accelerateBall(ball, amount) {
   const speed = Math.hypot(ball.vx, ball.vy);
-  setBallSpeed(ball, clamp(speed + amount, 3.8, maxBallSpeed()));
+  setBallSpeed(ball, clamp(speed + amount, BALL_MIN_SPEED, maxBallSpeed()));
 }
 
 function show(panel) {
-  for (const el of [ui.startPanel, ui.upgradePanel, ui.endPanel]) {
+  for (const el of [ui.startPanel, ui.introPanel, ui.upgradePanel, ui.endPanel]) {
     el.classList.remove("is-visible");
   }
   if (panel) panel.classList.add("is-visible");
@@ -344,7 +390,7 @@ function updateHud() {
 function resetRun() {
   state.level = 1;
   state.score = 0;
-  state.lives = 3;
+  state.lives = currentDifficulty().lives;
   state.combo = 1;
   state.maxCombo = 1;
   state.comboTimer = 0;
@@ -389,6 +435,7 @@ function buildBricks() {
   const form = currentLevelForm();
   const pattern = form.pattern;
   const cycle = levelCycle(state.level);
+  const difficulty = currentDifficulty();
   for (let r = 0; r < brick.rows; r += 1) {
     for (let c = 0; c < brick.cols; c += 1) {
       if (!pattern({ r, c })) continue;
@@ -400,14 +447,14 @@ function buildBricks() {
       const roll = Math.random();
       if ((r + c + state.level) % 19 === 0 || roll < 0.035 + Math.min(0.03, cycle * 0.004)) {
         type = "bomb";
-      } else if ((r * 3 + c + state.level) % 23 === 0 || roll > 0.965 - Math.min(0.025, cycle * 0.004)) {
+      } else if ((r * 3 + c + state.level) % 23 === 0 || roll > 0.965 - difficulty.splitBonus - Math.min(0.025, cycle * 0.004)) {
         type = "split";
       } else if ((r + c) % 11 === 0 && state.level > 1) {
         type = "shield";
-        hp = 2 + Math.min(2, Math.floor(cycle / 2));
+        hp = clamp(2 + Math.min(2, Math.floor(cycle / 2)) + difficulty.shieldHpBonus, 1, 5);
       } else if (cycle >= 2 && (r * 7 + c + state.level) % clamp(17 - cycle, 9, 17) === 0) {
         type = "shield";
-        hp = 2;
+        hp = clamp(2 + difficulty.shieldHpBonus, 1, 5);
       }
       state.bricks.push({
         x,
@@ -446,7 +493,7 @@ function addObstacle(config) {
 }
 
 function buildObstacles() {
-  const speedBoost = Math.min(1.8, 0.15 * state.level);
+  const speedBoost = Math.min(1.8, 0.15 * state.level) * currentDifficulty().obstacleScale;
   currentLevelForm().obstacles(speedBoost);
 }
 
@@ -518,7 +565,7 @@ function hitBrick(b, ball) {
   state.comboTimer = 105;
   state.score += 8 * state.combo;
   ball.hot = 10;
-  accelerateBall(ball, 0.012 + state.level * 0.003);
+  accelerateBall(ball, 0.012);
   spawnParticles(ball.x, ball.y, brickColor(b), 6, 0.75);
   spawnFloater(b.x + b.w / 2, b.y, `+${8 * state.combo}`, brickColor(b));
 
@@ -662,7 +709,7 @@ function updateBalls() {
       ball.x <= paddle.x + paddle.w + ball.r
     ) {
       const t = (ball.x - (paddle.x + paddle.w / 2)) / (paddle.w / 2);
-      const speed = clamp(Math.hypot(ball.vx, ball.vy) + 0.035 + state.level * 0.004, 4, maxBallSpeed());
+      const speed = clamp(Math.hypot(ball.vx, ball.vy) + 0.025, 4, maxBallSpeed());
       const angle = -Math.PI / 2 + t * 0.92;
       ball.vx = Math.cos(angle) * speed;
       ball.vy = Math.sin(angle) * speed;
@@ -674,7 +721,7 @@ function updateBalls() {
     for (const obstacle of state.obstacles) {
       if (!circleRectCollision(ball, obstacle)) continue;
       resolveBrickCollision(ball, obstacle, true);
-      accelerateBall(ball, 0.008 + state.level * 0.002);
+      accelerateBall(ball, 0.008);
       ball.x += ball.vx * 0.7;
       ball.y += ball.vy * 0.7;
       obstacle.hitGlow = 16;
@@ -1175,10 +1222,46 @@ function togglePause() {
   }
 }
 
-ui.startButton.addEventListener("click", () => {
+function setDifficulty(difficulty) {
+  if (!difficulties[difficulty]) return;
+  state.difficulty = difficulty;
+  const setting = currentDifficulty();
+  for (const button of ui.difficultyButtons) {
+    const selected = button.dataset.difficulty === difficulty;
+    button.classList.toggle("is-selected", selected);
+    button.setAttribute("aria-pressed", selected ? "true" : "false");
+  }
+  if (ui.difficultyNote) {
+    ui.difficultyNote.textContent = setting.note;
+  }
+  if (state.mode === "start") {
+    state.lives = setting.lives;
+    updateHud();
+  }
+}
+
+function startGame() {
   resetRun();
   show(null);
   setMode("playing");
+}
+
+for (const button of ui.difficultyButtons) {
+  button.addEventListener("click", () => {
+    setDifficulty(button.dataset.difficulty);
+  });
+}
+
+ui.startButton.addEventListener("click", startGame);
+
+ui.introButton.addEventListener("click", () => {
+  show(ui.introPanel);
+});
+
+ui.introStartButton.addEventListener("click", startGame);
+
+ui.introBackButton.addEventListener("click", () => {
+  show(ui.startPanel);
 });
 
 ui.restartButton.addEventListener("click", () => {
@@ -1192,5 +1275,6 @@ ui.pauseButton.addEventListener("click", togglePause);
 resetRun();
 show(ui.startPanel);
 setMode("start");
+setDifficulty(state.difficulty);
 updateHud();
 requestAnimationFrame(loop);

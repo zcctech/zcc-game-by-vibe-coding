@@ -45,7 +45,47 @@
           <p class="eyebrow">CYBER BREAKOUT</p>
           <h1>cc弹方块</h1>
           <p>拖动底部能量挡板接球，击碎数据方块，连击越高爆发越强。</p>
-          <button class="primary-button" id="startButton" type="button">开始入侵</button>
+          <div class="difficulty-picker" aria-label="难度选择">
+            <span class="difficulty-title">难度选择</span>
+            <div class="difficulty-options">
+              <button class="difficulty-button" type="button" data-difficulty="easy">
+                简单
+                <span>5生命 · 慢速</span>
+              </button>
+              <button class="difficulty-button is-selected" type="button" data-difficulty="normal">
+                普通
+                <span>3生命 · 均衡</span>
+              </button>
+              <button class="difficulty-button" type="button" data-difficulty="hard">
+                困难
+                <span>2生命 · 高压</span>
+              </button>
+            </div>
+            <p class="difficulty-note" id="difficultyNote">普通：标准速度和障碍节奏，适合第一次完整体验。</p>
+          </div>
+          <div class="start-actions">
+            <button class="primary-button" id="startButton" type="button">开始入侵</button>
+            <button class="secondary-button" id="introButton" type="button">游戏介绍</button>
+          </div>
+        </div>
+
+        <div class="panel intro-panel" id="introPanel">
+          <p class="eyebrow">PLAYER GUIDE</p>
+          <h2>玩法和注意事项</h2>
+          <div class="intro-copy">
+            <p>控制底部挡板反弹小球，击碎上方所有方块即可进入下一关。每一关的初始球速保持一致，难度主要来自方块布局、障碍物和特殊方块。</p>
+            <ul>
+              <li>左右拖动或移动鼠标控制挡板，尽量不要让所有小球掉出底部。</li>
+              <li>霓虹障碍物会改变球路，移动障碍在后期会更难预判。</li>
+              <li>x3 道具会分裂小球，BOMB 会让小球短时间拥有爆破能力。</li>
+              <li>过关后选择强化，不同强化会影响后续无限关卡的打法。</li>
+              <li>开始前可选择简单、普通或困难；选定后本局会按该难度进行。</li>
+            </ul>
+          </div>
+          <div class="start-actions">
+            <button class="primary-button" id="introStartButton" type="button">开始游戏</button>
+            <button class="secondary-button" id="introBackButton" type="button">返回标题</button>
+          </div>
         </div>
 
         <div class="panel upgrade-panel" id="upgradePanel">
