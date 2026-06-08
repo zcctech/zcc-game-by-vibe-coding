@@ -1,0 +1,68 @@
+<!doctype html>
+<html lang="zh-CN">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>cc弹方块</title>
+    <link rel="stylesheet" href="styles.css" />
+  </head>
+  <body>
+    <main class="shell">
+      <section class="game-phone" aria-label="cc弹方块游戏区域">
+        <canvas id="game" width="390" height="720"></canvas>
+
+        <div class="hud top-hud" aria-hidden="true">
+          <div>
+            <span class="label">LEVEL</span>
+            <strong id="levelText">01</strong>
+          </div>
+          <div>
+            <span class="label">SCORE</span>
+            <strong id="scoreText">0</strong>
+          </div>
+          <div>
+            <span class="label">LIFE</span>
+            <strong id="lifeText">3</strong>
+          </div>
+        </div>
+
+        <div class="hud combo-hud" aria-hidden="true">
+          <span>COMBO</span>
+          <strong id="comboText">x1</strong>
+        </div>
+
+        <button class="icon-button pause-button" id="pauseButton" type="button" aria-label="暂停游戏">
+          <span id="pauseIcon">II</span>
+        </button>
+
+        <div class="power-rail" aria-hidden="true">
+          <div class="power-token cyan">x3</div>
+          <div class="power-token pink">BOMB</div>
+          <div class="power-token gold">CORE</div>
+        </div>
+
+        <div class="panel start-panel is-visible" id="startPanel">
+          <p class="eyebrow">CYBER BREAKOUT</p>
+          <h1>cc弹方块</h1>
+          <p>拖动底部能量挡板接球，击碎数据方块，连击越高爆发越强。</p>
+          <button class="primary-button" id="startButton" type="button">开始入侵</button>
+        </div>
+
+        <div class="panel upgrade-panel" id="upgradePanel">
+          <p class="eyebrow">SYSTEM UPGRADE</p>
+          <h2>选择强化</h2>
+          <div class="upgrade-grid" id="upgradeGrid"></div>
+        </div>
+
+        <div class="panel end-panel" id="endPanel">
+          <p class="eyebrow" id="endEyebrow">RUN COMPLETE</p>
+          <h2 id="endTitle">矩阵已清空</h2>
+          <p id="endCopy">你的能量轨迹留下了一整屏霓虹碎片。</p>
+          <button class="primary-button" id="restartButton" type="button">重新开始</button>
+        </div>
+      </section>
+    </main>
+
+    <script src="game.js"></script>
+  </body>
+</html>
